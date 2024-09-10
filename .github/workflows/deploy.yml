@@ -50,6 +50,12 @@ jobs:
           # Add the current user to the docker group
           sudo usermod -aG docker $USER
 
+          # Stop any running container using port 3000
+          docker ps --filter "publish=3000" --format "{{.ID}}" | xargs -r docker stop
+
+          # Remove any stopped containers that were using port 3000
+          docker ps -a --filter "publish=3000" --format "{{.ID}}" | xargs -r docker rm
+
           # Log in to Docker Hub
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
