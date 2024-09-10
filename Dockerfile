@@ -1,28 +1,23 @@
-# Stage 1: Build stage
-FROM node:16 AS build
+# Stage 1: Install dependencies (build stage)
+FROM node:16 AS dependencies
 
-# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy package files and install dependencies
 COPY package*.json ./
+RUN npm install --production
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application code
-COPY . .
-
-# Stage 2: Runtime stage
+# Stage 2: Use a lightweight image for running the app
 FROM node:16-slim
 
-# Set working directory
 WORKDIR /app
 
-# Copy only the necessary files from the build stage
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app ./
+# Copy only the necessary files from the dependencies stage
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY . .
 
-# Expose port and define command to run the application
+# Expose the application port
 EXPOSE 3000
+
+# Start the application
 CMD [ "npm", "start" ]
